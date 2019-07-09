@@ -1,0 +1,32 @@
+global_defs {
+    lvs_id LVS_redis
+}
+
+vrrp_script chk_redis {
+    script "/etc/keepalived/scripts/redis_check.sh"
+    interval 2
+    timeout 2
+    fall 3
+}
+
+vrrp_instance rk {
+    state MASTER
+    interface enp0s8
+    virtual_router_id 54
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 6ea5d4e2
+    }
+    track_script {
+        chk_redis
+    }
+    virtual_ipaddress {
+       192.168.33.90/24
+    }
+    notify_master "/etc/keepalived/scripts/redis_master.sh 192.168.33.90 6379"
+    notify_backup "/etc/keepalived/scripts/redis_backup.sh 192.168.33.80 6379"
+    notify_fault  /etc/keepalived/scripts/redis_fault.sh
+    notify_stop   /etc/keepalived/scripts/redis_stop.sh
+}
